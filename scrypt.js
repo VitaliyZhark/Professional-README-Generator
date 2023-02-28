@@ -47,3 +47,17 @@ const questions = [
             return true;
         }
     },
+
+    {
+        type: 'input',
+        message: "Write a description of your project.",
+        name: 'description',
+        default: 'Project Description',
+        validate: function (answer) {
+            if (answer.length < 1) {
+                return console.log("A valid project description is required.");
+            }
+            return true;
+        }
+    },
+    
