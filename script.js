@@ -1,131 +1,88 @@
-// External packages
-const inquirer = require('inquirer');
-const fs = require('fs');
-const util = require('util');
+// array of questions for user
+const generateMarkdown =require("./utils/generateMarkdown.js");
+const inquirer = require("inquirer");
+const fs = require("fs");
 
-// Internal modules
-const api = require('./utils/api.js');
-const generateMarkdown = require('./utils/generateMarkdown.js');
-
-// Inquirer prompts for userResponses
 const questions = [
-    {
-        type: 'input',
-        message: "What is your GitHub username? (No @ needed)",
-        name: 'username',
-        default: 'connietran-dev',
-        validate: function (answer) {
-            if (answer.length < 1) {
-                return console.log("A valid GitHub username is required.");
-            }
-            return true;
-        }
-    },
-
-    {
-        type: 'input',
-        message: "What is the name of your GitHub repo?",
-        name: 'repo',
-        default: 'readme-generator',
-        validate: function (answer) {
-            if (answer.length < 1) {
-                return console.log("A valid GitHub repo is required for a badge.");
-            }
-            return true;
-        }
-    },
-
-    {
-        type: 'input',
-        message: "What is the title of your project?",
-        name: 'title',
-        default: 'Project Title',
-        validate: function (answer) {
-            if (answer.length < 1) {
-                return console.log("A valid project title is required.");
-            }
-            return true;
-        }
-    },
-
-    {
-        type: 'input',
-        message: "Write a description of your project.",
-        name: 'description',
-        default: 'Project Description',
-        validate: function (answer) {
-            if (answer.length < 1) {
-                return console.log("A valid project description is required.");
-            }
-            return true;
-        }
-    },
-
-    {
-        type: 'input',
-        message: "If applicable, describe the steps required to install your project for the Installation section.",
-        name: 'installation'
-    },
-    {
-        type: 'input',
-        message: "Provide instructions and examples of your project in use for the Usage section.",
-        name: 'usage'
-    },
-    {
-        type: 'input',
-        message: "If applicable, provide guidelines on how other developers can contribute to your project.",
-        name: 'contributing'
-    },
-    {
-        type: 'input',
-        message: "If applicable, provide any tests written for your application and provide examples on how to run them.",
-        name: 'tests'
-    },
-    {
-        type: 'list',
-        message: "Choose a license for your project.",
-        choices: ['GNU AGPLv3', 'GNU GPLv3', 'GNU LGPLv3', 'Mozilla Public License 2.0', 'Apache License 2.0', 'MIT License', 'Boost Software License 1.0', 'The Unlicense'],
-        name: 'license'
-    }
+  {
+    type: "input",
+    name: "title",
+    message: "What is the title of your project?",
+  },
+  {
+    type: "input",
+    name: "description",
+    message: "Please provide a description of your project:",
+  },
+  {
+    type: "input",
+    name: "installation",
+    message: "Please provide installation instructions for your project:",
+  },
+  {
+    type: "input",
+    name: "usage",
+    message: "Please provide usage information for your project:",
+  },
+  {
+    type: "list",
+    name: "license",
+    message: "Which license would you like to use for your project?",
+    choices: ["MIT", "Apache", "GPL", "None"],
+  },
+  {
+    type: "input",
+    name: "contributing",
+    message: "Please provide contribution guidelines for your project:",
+  },
+  {
+    type: "input",
+    name: "tests",
+    message: "Please provide test instructions for your project:",
+  },
+  {
+    type: "input",
+    name: "github",
+    message: "What is your GitHub username?",
+  },
+  {
+    type: "input",
+    name: "email",
+    message: "What is your email address?",
+  },
 ];
 
+// function to write README file
 function writeToFile(fileName, data) {
-    fs.writeFile(fileName, data, err => {
-        if (err) {
-          return console.log(err);
-        }
-      
-        console.log("Success! Your README.md file has been generated")
-    });
+    ("README.md", generateMarkdown.generateMarkdown(data), function (err){
+        if(err) throw err;
+        console.log("README page has generated.")    
+    })
 }
 
-const writeFileAsync = util.promisify(writeToFile);
+// function to initialize program
+function init() {
+    inquirer.prompt(questions).then(function(userInfo) {
+        // userInfo is an object
 
-// Main function
-async function init() {
-    try {
-
-        // Prompt Inquirer questions
-        const userResponses = await inquirer.prompt(questions);
-        console.log("Your responses: ", userResponses);
-        console.log("Thank you for your responses! Fetching your GitHub data next...");
-    
-        // Call GitHub api for user info
-        const userInfo = await api.getUser(userResponses);
-        console.log("Your GitHub user info: ", userInfo);
-    
-        // Pass Inquirer userResponses and GitHub userInfo to generateMarkdown
-        console.log("Generating your README next...")
-        const markdown = generateMarkdown(userResponses, userInfo);
-        console.log(markdown);
-    
-        // Write markdown to file
-        await writeFileAsync('ExampleREADME.md', markdown);
-
-    } catch (error) {
-        console.log(error);
-    }
+        const markdownString = generateMarkdown(userInfo)
+        fs.writeFile('README.md', markdownString, function(err) {
+            if(err) {
+                console.log(err)
+            }
+            else {
+                console.log('generated README')
+            }
+        })
+    },
+    // make the questions in the questions array
+     
+     e => {
+        console.log(`The file could not be generated because the user does not exist.`);
+    })
 };
 
-init(); 
+// function call to initialize program
+init();
+
 
